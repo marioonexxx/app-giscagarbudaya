@@ -16,12 +16,12 @@
             </div>
 
             <div class="row">
-                <div class="col-xl-4 col-md-6 mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
                     <div class="card border-start-lg border-warning h-100 shadow-sm border-0">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
                                 <div class="flex-grow-1">
-                                    <div class="small fw-bold text-warning text-uppercase mb-1">Antrean Verifikasi</div>
+                                    <div class="small fw-bold text-warning text-uppercase mb-1">Antrean</div>
                                     <div class="h3 fw-bold">{{ $antreanVerifikasi }}</div>
                                 </div>
                                 <div class="ms-2">
@@ -32,12 +32,12 @@
                     </div>
                 </div>
 
-                <div class="col-xl-4 col-md-6 mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
                     <div class="card border-start-lg border-success h-100 shadow-sm border-0">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
                                 <div class="flex-grow-1">
-                                    <div class="small fw-bold text-success text-uppercase mb-1">Total Selesai</div>
+                                    <div class="small fw-bold text-success text-uppercase mb-1">Selesai</div>
                                     <div class="h3 fw-bold">{{ $totalSelesai }}</div>
                                 </div>
                                 <div class="ms-2">
@@ -48,12 +48,28 @@
                     </div>
                 </div>
 
-                <div class="col-xl-4 col-md-6 mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-start-lg border-info h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <div class="small fw-bold text-info text-uppercase mb-1">Perlu Revisi</div>
+                                    <div class="h3 fw-bold">{{ $totalRevisi ?? 0 }}</div>
+                                </div>
+                                <div class="ms-2">
+                                    <i class="fas fa-sync fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
                     <div class="card border-start-lg border-danger h-100 shadow-sm border-0">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
                                 <div class="flex-grow-1">
-                                    <div class="small fw-bold text-danger text-uppercase mb-1">Total Ditolak</div>
+                                    <div class="small fw-bold text-danger text-uppercase mb-1">Ditolak</div>
                                     <div class="h3 fw-bold">{{ $totalDitolak ?? 0 }}</div>
                                 </div>
                                 <div class="ms-2">

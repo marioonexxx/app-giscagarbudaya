@@ -58,6 +58,22 @@
             padding: 1rem 0.5rem;
         }
 
+        /* Style untuk Tombol Detail agar terlihat */
+        .btn-detail {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50px;
+            transition: all 0.3s;
+        }
+
+        .btn-detail:hover {
+            background: white;
+            color: #1e3a8a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
         .badge-kategori {
             background: rgba(255, 255, 255, 0.2);
             color: white;
@@ -141,7 +157,7 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('publik.peta') ? 'active fw-bold' : '' }}"
                             href="{{ route('publik.peta') }}">
-                            <i class="fas fa-map-marked-alt me-1"></i> Peta
+                            <i class="fas fa-map-marked-alt me-1"></i> Peta Sebaran
                         </a>
                     </li>
                 </ul>

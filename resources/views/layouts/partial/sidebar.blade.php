@@ -34,13 +34,13 @@
             @if (auth()->user()->peran == 'evaluator')
                 <div class="sidenav-menu-heading">Verifikasi & Validasi</div>
 
-                <a class="nav-link" href="#!">
+                {{-- <a class="nav-link" href="#!">
                     <div class="nav-link-icon"><i data-feather="check-square"></i></div>
                     Antrian Evaluasi
                     <span class="badge bg-warning-soft text-warning ms-auto">Proses</span>
-                </a>
+                </a> --}}
 
-                <a class="nav-link" href="#!">
+                <a class="nav-link" href="{{ route('evaluator.verifikasi.riwayat') }}">
                     <div class="nav-link-icon"><i data-feather="file-text"></i></div>
                     Data Terverifikasi
                 </a>

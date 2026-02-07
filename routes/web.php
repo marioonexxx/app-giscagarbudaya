@@ -47,6 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/verifikasi/{id}', [VerifikasiCagarBudayaController::class, 'show'])->name('verifikasi.show');
             Route::post('/verifikasi/{id}/setujui', [VerifikasiCagarBudayaController::class, 'setujui'])->name('verifikasi.setujui');
             Route::post('/verifikasi/{id}/tolak', [VerifikasiCagarBudayaController::class, 'tolak'])->name('verifikasi.tolak');
+            Route::get('/verifikasi-riwayat', [VerifikasiCagarBudayaController::class, 'riwayatEvaluasi'])->name('verifikasi.riwayat');
         });
 
     // --- Kelompok Super Admin ---

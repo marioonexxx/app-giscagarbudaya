@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class FotoCagarBudaya extends Model
 {
-    // Mengunci nama tabel agar tidak menjadi foto_cagar_budayas
+
     protected $table = 'foto_cagar_budaya';
 
     protected $fillable = [

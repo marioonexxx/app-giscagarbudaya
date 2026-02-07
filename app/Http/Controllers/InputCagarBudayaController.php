@@ -102,51 +102,51 @@ class InputCagarBudayaController extends Controller
             'file_rekomendasi_tacb' => 'nullable|mimes:pdf|max:5120',
         ]);
 
-        // Data Utama
-        $data = [
-            'nama'           => $request->nama,
-            'kategori_id'    => $request->kategori_id,
-            'deskripsi'      => $request->deskripsi,
-            'alamat_lengkap' => $request->alamat_lengkap,
-            'tipe_geometri'  => $request->tipe_geometri,
-            'koordinat'      => json_decode($request->koordinat),
-        ];
+        // 1. Logika Perubahan Status (SANGAT PENTING)
+        // Jika status saat ini adalah 'Revisi', kembalikan ke 'Pendaftaran'
+        if ($cb->status_verifikasi === 'Revisi') {
+            $cb->status_verifikasi = 'Pendaftaran';
+        }
 
-        // Update PDF Surat Pengantar jika ada yang baru
+        // 2. Update Data Utama
+        $cb->nama = $request->nama;
+        $cb->kategori_id = $request->kategori_id;
+        $cb->deskripsi = $request->deskripsi;
+        $cb->alamat_lengkap = $request->alamat_lengkap;
+        $cb->tipe_geometri = $request->tipe_geometri;
+        $cb->koordinat = json_decode($request->koordinat);
+
+        // 3. Update Dokumen PDF (Hapus lama jika ada yang baru)
         if ($request->hasFile('file_surat_pengantar')) {
             if ($cb->file_surat_pengantar) Storage::disk('public')->delete($cb->file_surat_pengantar);
-            $data['file_surat_pengantar'] = $request->file('file_surat_pengantar')->store('dokumen/surat', 'public');
+            $cb->file_surat_pengantar = $request->file('file_surat_pengantar')->store('dokumen_usulan', 'public');
         }
 
-        // Update PDF Rekomendasi jika ada yang baru
         if ($request->hasFile('file_rekomendasi_tacb')) {
             if ($cb->file_rekomendasi_tacb) Storage::disk('public')->delete($cb->file_rekomendasi_tacb);
-            $data['file_rekomendasi_tacb'] = $request->file('file_rekomendasi_tacb')->store('dokumen/rekomendasi', 'public');
+            $cb->file_rekomendasi_tacb = $request->file('file_rekomendasi_tacb')->store('dokumen_usulan', 'public');
         }
 
-        $cb->update($data);
+        $cb->save();
 
-        // Update Foto
+        // 4. Update Foto (Opsional: Hapus lama dan ganti baru jika diupload)
         if ($request->hasFile('foto_upload')) {
-            // Hapus Foto Fisik & DB
             foreach ($cb->foto as $oldFoto) {
                 Storage::disk('public')->delete($oldFoto->path);
                 $oldFoto->delete();
             }
 
-            // Simpan Foto Baru
             foreach ($request->file('foto_upload') as $file) {
-                $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $path = $file->store('cagar-budaya', 'public');
+                $path = $file->store('cagar-budaya/foto', 'public');
                 $cb->foto()->create([
                     'path' => $path,
-                    'keterangan' => $filename
+                    'keterangan' => $file->getClientOriginalName()
                 ]);
             }
         }
 
         return redirect()->route('admin_kabupaten.cagar-budaya.index')
-            ->with('success', 'Data usulan berhasil diperbarui!');
+            ->with('success', 'Perbaikan berhasil disimpan dan status usulan dikirim ulang ke Provinsi!');
     }
 
     public function destroy($id)

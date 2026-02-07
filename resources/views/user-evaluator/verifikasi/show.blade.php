@@ -29,6 +29,11 @@
             background-color: rgba(78, 115, 223, 0.1);
             color: #4e73df;
         }
+
+        .badge-revisi {
+            background-color: #f6e7c1;
+            color: #856404;
+        }
     </style>
 @endpush
 
@@ -65,26 +70,39 @@
                         <div class="card-body">
                             <table class="table table-borderless align-middle">
                                 <tr>
-                                    <th width="35%">Nama Objek</th>
-                                    <td>: <span class="fw-bold text-dark">{{ $cagar->nama }}</span></td>
+                                    <th width="30%">Nama Objek</th>
+                                    <td class="d-flex align-items-start">
+                                        <span class="me-2">:</span>
+                                        <span class="fw-bold text-dark">{{ $cagar->nama }}</span>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <th>Kategori</th>
-                                    <td>: {{ $cagar->kategori->nama_kategori ?? '-' }}</td>
+                                    <td class="d-flex align-items-start">
+                                        <span class="me-2">:</span>
+                                        {{ $cagar->kategori->nama_kategori ?? '-' }}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <th>Alamat Lokasi</th>
-                                    <td>: {{ $cagar->alamat ?? '-' }}</td>
+                                    <td class="d-flex align-items-start">
+                                        <span class="me-2">:</span>
+                                        {{ $cagar->alamat_lengkap ?? '-' }}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <th>Deskripsi</th>
-                                    <td>: <div class="bg-light p-3 rounded small">
-                                            {{ $cagar->deskripsi ?? 'Tidak ada deskripsi.' }}</div>
+                                    <td class="d-flex align-items-start">
+                                        <span class="me-2">:</span>
+                                        <div class="bg-light p-3 rounded small flex-grow-1">
+                                            {{ $cagar->deskripsi ?? 'Tidak ada deskripsi.' }}
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th>Surat Pengantar</th>
-                                    <td>:
+                                    <td class="d-flex align-items-start">
+                                        <span class="me-2">:</span>
                                         @if ($cagar->file_surat_pengantar)
                                             <a href="{{ asset('storage/' . $cagar->file_surat_pengantar) }}"
                                                 class="btn btn-xs btn-outline-primary" target="_blank">
@@ -98,7 +116,8 @@
                                 </tr>
                                 <tr>
                                     <th>Rekomendasi TACB</th>
-                                    <td>:
+                                    <td class="d-flex align-items-start">
+                                        <span class="me-2">:</span>
                                         @if ($cagar->file_rekomendasi_tacb)
                                             <a href="{{ asset('storage/' . $cagar->file_rekomendasi_tacb) }}"
                                                 class="btn btn-xs btn-outline-info" target="_blank">
@@ -129,20 +148,56 @@
                     <div class="card shadow-sm mb-4 border-top-lg border-primary">
                         <div class="card-header bg-white fw-bold">Keputusan Evaluator</div>
                         <div class="card-body">
-                            <div class="d-grid gap-2">
-                                <form id="formSetuju" action="{{ route('evaluator.verifikasi.setujui', $cagar->id) }}"
-                                    method="POST">
-                                    @csrf
-                                    <button type="button" id="btnSetuju" class="btn btn-success w-100 mb-2 shadow-sm">
-                                        <i class="fas fa-check-circle me-2"></i>Verifikasi Sekarang
+                            {{-- CEK STATUS: Jika masih Pendaftaran, tampilkan tombol aksi --}}
+                            @if ($cagar->status_verifikasi == 'Pendaftaran')
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-success w-100 mb-2 shadow-sm" data-bs-toggle="modal"
+                                        data-bs-target="#modalEvaluasi"
+                                        onclick="setEvaluasi('Layak', 'success', 'Konfirmasi Setujui')">
+                                        <i class="fas fa-check-circle me-2"></i>Setujui Data
                                     </button>
-                                </form>
 
-                                <button class="btn btn-outline-danger w-100 shadow-sm" data-bs-toggle="modal"
-                                    data-bs-target="#modalTolak">
-                                    <i class="fas fa-undo me-2"></i>Tolak & Revisi
-                                </button>
-                            </div>
+                                    <button class="btn btn-warning w-100 mb-2 shadow-sm text-white" data-bs-toggle="modal"
+                                        data-bs-target="#modalEvaluasi"
+                                        onclick="setEvaluasi('Perlu Revisi', 'warning', 'Instruksi Revisi')">
+                                        <i class="fas fa-sync me-2"></i>Minta Revisi
+                                    </button>
+
+                                    <button class="btn btn-outline-danger w-100 shadow-sm" data-bs-toggle="modal"
+                                        data-bs-target="#modalEvaluasi"
+                                        onclick="setEvaluasi('Tidak Layak', 'danger', 'Alasan Penolakan')">
+                                        <i class="fas fa-times-circle me-2"></i>Tolak Data
+                                    </button>
+                                </div>
+                            @else
+                                {{-- TAMPILAN JIKA SUDAH DIPROSES (READ ONLY) --}}
+                                <div class="text-center py-2">
+                                    <div class="avatar avatar-xl bg-light text-primary mb-3"
+                                        style="width: 3rem; height: 3rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                        <i class="fas fa-clipboard-check fa-lg"></i>
+                                    </div>
+                                    <h5 class="fw-bold text-dark">Data Terverifikasi</h5>
+                                    <p class="small text-muted">Status akhir objek ini adalah:</p>
+
+                                    @php
+                                        $badgeFinal =
+                                            [
+                                                'Diverifikasi' => 'bg-success',
+                                                'Ditetapkan' => 'bg-primary',
+                                                'Revisi' => 'bg-warning text-dark',
+                                                'Ditolak' => 'bg-danger',
+                                            ][$cagar->status_verifikasi] ?? 'bg-secondary';
+                                    @endphp
+                                    <span
+                                        class="badge {{ $badgeFinal }} d-block p-2 mb-3">{{ $cagar->status_verifikasi }}</span>
+
+                                    <div class="bg-light p-2 rounded small border text-start">
+                                        <i class="fas fa-info-circle me-1 text-primary"></i>
+                                        Data ini sudah tidak dapat diubah kembali. Silakan cek menu <strong>Riwayat</strong>
+                                        untuk melihat log lengkap.
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -152,11 +207,12 @@
                             <div class="row g-2">
                                 @forelse($cagar->foto as $f)
                                     <div class="col-6">
-                                        <img src="{{ asset('storage/' . $f->path) }}" class="img-preview border shadow-sm">
+                                        <img src="{{ asset('storage/' . $f->path) }}" class="img-preview border shadow-sm"
+                                            alt="Foto Cagar Budaya">
                                     </div>
                                 @empty
                                     <div class="col-12 text-center py-4 text-muted small">
-                                        <i class="fas fa-image fa-2x mb-2 opacity-25"></i><br>Tidak ada foto.
+                                        <i class="fas fa-image fa-2x mb-2 opacity-25"></i><br>Tidak ada foto lampiran.
                                     </div>
                                 @endforelse
                             </div>
@@ -167,23 +223,31 @@
         </div>
     </main>
 
-    <div class="modal fade" id="modalTolak" tabindex="-1">
+    <div class="modal fade" id="modalEvaluasi" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
-            <form action="{{ route('evaluator.verifikasi.tolak', $cagar->id) }}" method="POST">
+            {{-- Action form akan diisi otomatis melalui JS setEvaluasi --}}
+            <form action="" method="POST" id="formEvaluasi">
                 @csrf
+                <input type="hidden" name="kesimpulan" id="inputKesimpulan">
                 <div class="modal-content border-0 shadow-lg">
-                    <div class="modal-header bg-danger text-white">
-                        <h5 class="modal-title">Alasan Penolakan Data</h5>
+                    <div class="modal-header text-white" id="modalHeader">
+                        <h5 class="modal-title" id="modalTitle">Evaluasi Data</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <label class="small fw-bold mb-2">Instruksi perbaikan bagi Admin Kabupaten:</label>
-                        <textarea name="catatan_evaluator" class="form-control" rows="5"
-                            placeholder="Contoh: Lampirkan surat pengantar yang sudah ditandatangani..." required></textarea>
+                        <div class="mb-3">
+                            <label class="small fw-bold mb-2">Catatan/Alasan Evaluasi <span
+                                    class="text-danger">*</span></label>
+                            <textarea name="catatan" class="form-control" rows="5" id="catatanEvaluasi"
+                                placeholder="Berikan catatan detail..." required></textarea>
+                            <div class="form-text mt-2 small text-muted">
+                                Catatan ini akan tersimpan sebagai riwayat verifikasi.
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer bg-light">
-                        <button type="button" class="btn btn-light border" data-bs-modal="dismiss">Batal</button>
-                        <button type="submit" class="btn btn-danger shadow">Kirim Revisi</button>
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn" id="btnSubmitEvaluasi">Kirim Keputusan</button>
                     </div>
                 </div>
             </form>
@@ -196,8 +260,38 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
+        function setEvaluasi(kesimpulan, type, title) {
+            const form = document.getElementById('formEvaluasi');
+            const inputKesimpulan = document.getElementById('inputKesimpulan');
+            const cagarId = "{{ $cagar->id }}";
+
+            // 1. Set Input Hidden
+            inputKesimpulan.value = kesimpulan;
+            document.getElementById('modalTitle').innerText = title;
+
+            // 2. Sesuaikan Action Route (Mengikuti struktur route kamu)
+            if (kesimpulan === 'Layak') {
+                form.action = "{{ route('evaluator.verifikasi.setujui', $cagar->id) }}";
+            } else {
+                form.action = "{{ route('evaluator.verifikasi.tolak', $cagar->id) }}";
+            }
+
+            // 3. Update UI Modal
+            const header = document.getElementById('modalHeader');
+            const btn = document.getElementById('btnSubmitEvaluasi');
+            header.className = 'modal-header text-white bg-' + type;
+            btn.className = 'btn btn-' + type;
+            if (type === 'warning') btn.classList.add('text-white');
+
+            // 4. Update Placeholder
+            const area = document.getElementById('catatanEvaluasi');
+            if (kesimpulan === 'Layak') area.placeholder = "Contoh: Dokumen sudah sesuai.";
+            if (kesimpulan === 'Perlu Revisi') area.placeholder = "Contoh: Mohon perbaiki foto koordinat.";
+            if (kesimpulan === 'Tidak Layak') area.placeholder = "Contoh: Objek tidak memenuhi syarat.";
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. Inisialisasi Peta
+            // Peta
             const type = "{{ $cagar->tipe_geometri }}";
             const coords = {!! json_encode($cagar->koordinat) !!};
             const map = L.map('mapDetail');
@@ -216,41 +310,13 @@
                 });
             }
 
-            // 2. SweetAlert Konfirmasi Verifikasi
-            document.getElementById('btnSetuju').addEventListener('click', function() {
-                // Cek kelengkapan dokumen (secara client-side sederhana)
-                const surat = {{ $cagar->file_surat_pengantar ? 'true' : 'false' }};
-                const rekom = {{ $cagar->file_rekomendasi_tacb ? 'true' : 'false' }};
-
-                let config = {
-                    title: 'Verifikasi Data?',
-                    text: 'Pastikan seluruh informasi teknis sudah benar sebelum diverifikasi.',
-                    icon: 'question',
-                    confirmButtonText: 'Ya, Verifikasi!',
-                    confirmButtonColor: '#198754'
-                };
-
-                if (!surat || !rekom) {
-                    config.title = 'Dokumen Belum Lengkap!';
-                    config.text =
-                        'Beberapa file wajib belum diunggah. Anda yakin ingin tetap memverifikasi?';
-                    config.icon = 'warning';
-                }
-
+            // Loading submit
+            document.getElementById('formEvaluasi').addEventListener('submit', function() {
                 Swal.fire({
-                    ...config,
-                    showCancelButton: true,
-                    cancelButtonText: 'Batal',
-                    reverseButtons: true
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire({
-                            title: 'Memproses...',
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-                        document.getElementById('formSetuju').submit();
+                    title: 'Menyimpan Keputusan...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
                     }
                 });
             });

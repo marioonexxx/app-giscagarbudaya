@@ -11,15 +11,10 @@ class UserEvaluatorController extends Controller
     {
         // Gunakan with() untuk eager loading agar tidak error saat memanggil $item->kategori atau $item->foto
         $query = CagarBudaya::query();
-
-        // 1. Antrean (Status Pendaftaran)
         $antreanVerifikasi = (clone $query)->where('status_verifikasi', 'Pendaftaran')->count();
-
-        // 2. Total Selesai
         $totalSelesai = (clone $query)->whereIn('status_verifikasi', ['Diverifikasi', 'Ditetapkan'])->count();
-
-        // 3. Tambahkan total ditolak (agar variabel di Blade tidak undefined)
         $totalDitolak = (clone $query)->where('status_verifikasi', 'Ditolak')->count();
+        $totalRevisi = CagarBudaya::where('status_verifikasi', 'Revisi')->count();
 
         // 4. Ambil 5 tugas terbaru dengan relasi agar tidak error di loop Blade
         $tugasTerbaru = CagarBudaya::with(['kategori', 'foto', 'user'])
@@ -32,7 +27,8 @@ class UserEvaluatorController extends Controller
             'antreanVerifikasi',
             'totalSelesai',
             'totalDitolak',
-            'tugasTerbaru'
+            'tugasTerbaru',
+            'totalRevisi',
         ));
     }
 }

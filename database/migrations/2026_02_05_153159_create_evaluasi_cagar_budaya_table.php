@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('evaluasi_cagar_budaya', function (Blueprint $table) {
             $table->id();
             $table->foreignId('cagar_budaya_id')->constrained('cagar_budaya')->onDelete('cascade');
-            $table->foreignId('evaluator_id')->constrained('users'); // User dengan peran 'evaluator'
-            $table->date('tanggal_evaluasi');
+            $table->foreignId('evaluator_id')->constrained('users');
+            $table->timestamp('tanggal_evaluasi')->useCurrent();
             $table->text('catatan');
             $table->enum('kesimpulan', ['Layak', 'Tidak Layak', 'Perlu Revisi']);
             $table->timestamps();

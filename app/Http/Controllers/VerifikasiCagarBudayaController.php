@@ -3,43 +3,86 @@
 namespace App\Http\Controllers;
 
 use App\Models\CagarBudaya;
+use App\Models\EvaluasiCagarBudaya;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class VerifikasiCagarBudayaController extends Controller
 {
-    /**
-     * Menampilkan detail data untuk diperiksa oleh evaluator
-     */
+    // Menampilkan halaman detail (tetap seperti sebelumnya)
     public function show($id)
     {
-        // Eager load relasi agar tidak error di blade
-        $cagar = CagarBudaya::with(['kategori', 'foto', 'user'])->findOrFail($id);
-
-        return view('user-evaluator.verifikasi.show', compact('cagar'));
+        $cagar = CagarBudaya::with(['foto', 'kategori', 'evaluasi.evaluator'])->findOrFail($id);
+        return view('user-evaluator.verifikasi.show', compact('cagar')); // Sesuaikan nama view kamu
     }
 
-    public function setujui($id)
+    // Method untuk SETUJU (Layak)
+    public function setujui(Request $request, $id)
     {
-        $cagar = CagarBudaya::findOrFail($id);
-        $cagar->update(['status_verifikasi' => 'Diverifikasi']);
-
-        return redirect()->route('evaluator.dashboard')
-            ->with('success', 'Data berhasil diverifikasi oleh Evaluator.');
+        return $this->prosesEvaluasi($request, $id, 'Layak', 'Diverifikasi');
     }
 
+    // Method untuk TOLAK / REVISI
+    // Karena di Blade tadi ada 'Perlu Revisi' dan 'Tidak Layak',
+    // kita handle di sini berdasarkan input kesimpulan dari modal.
     public function tolak(Request $request, $id)
     {
+        $statusMapping = [
+            'Perlu Revisi' => 'Revisi',
+            'Tidak Layak'  => 'Ditolak'
+        ];
+
+        return $this->prosesEvaluasi(
+            $request,
+            $id,
+            $request->kesimpulan, // 'Perlu Revisi' atau 'Tidak Layak'
+            $statusMapping[$request->kesimpulan] ?? 'Ditolak'
+        );
+    }
+
+    /**
+     * Helper Fungsi agar kode tidak berulang (DRY Principle)
+     */
+    private function prosesEvaluasi($request, $id, $kesimpulan, $statusBaru)
+    {
         $request->validate([
-            'catatan_evaluator' => 'required|string|min:5'
+            'catatan' => 'required|string|min:10',
         ]);
 
         $cagar = CagarBudaya::findOrFail($id);
-        $cagar->update([
-            'status_verifikasi' => 'Ditolak',
-            'catatan_evaluator' => $request->catatan_evaluator
-        ]);
 
-        return redirect()->route('user-evaluator.dashboard')
-            ->with('info', 'Data dikembalikan untuk revisi.');
+        try {
+            DB::beginTransaction();
+
+            // 1. Catat ke Riwayat Evaluasi
+            EvaluasiCagarBudaya::create([
+                'cagar_budaya_id' => $cagar->id,
+                'evaluator_id'    => Auth::id(),
+                'tanggal_evaluasi' => now(),
+                'catatan'         => $request->catatan,
+                'kesimpulan'      => $kesimpulan,
+            ]);
+
+            // 2. Update Status Tabel Utama
+            $cagar->update(['status_verifikasi' => $statusBaru]);
+
+            DB::commit();
+            return redirect()->route('evaluator.dashboard')->with('success', 'Status berhasil diperbarui menjadi ' . $statusBaru);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->back()->with('error', 'Gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function riwayatEvaluasi()
+    {
+        // Menggunakan 'wilayah' sesuai nama fungsi di Model kamu
+        $dataCagar = CagarBudaya::with(['evaluasi.evaluator', 'kategori', 'wilayah'])
+            ->whereNotIn('status_verifikasi', ['Pendaftaran'])
+            ->latest()
+            ->get();
+
+        return view('user-evaluator.verifikasi.riwayat', compact('dataCagar'));
     }
 }

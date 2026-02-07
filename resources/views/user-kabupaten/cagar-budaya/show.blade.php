@@ -133,22 +133,32 @@
                                         </td>
                                         <td class="text-center">
                                             <div class="btn-group shadow-sm" role="group">
-                                                <a href="{{ route('admin_kabupaten.cagar-budaya.edit', $item->id) }}"
-                                                    class="btn btn-sm btn-white text-warning border"
-                                                    data-bs-toggle="tooltip" title="Edit Data">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <form
-                                                    action="{{ route('admin_kabupaten.cagar-budaya.destroy', $item->id) }}"
-                                                    method="POST" class="d-inline form-delete">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="button"
-                                                        class="btn btn-sm btn-white text-danger border btn-delete"
-                                                        data-bs-toggle="tooltip" title="Hapus Data">
-                                                        <i class="fas fa-trash"></i>
+                                                {{-- CEK STATUS: Jika status masih Pendaftaran atau Revisi, tombol muncul --}}
+                                                @if (in_array($item->status_verifikasi, ['Pendaftaran', 'Revisi']))
+                                                    <a href="{{ route('admin_kabupaten.cagar-budaya.edit', $item->id) }}"
+                                                        class="btn btn-sm btn-white text-warning border"
+                                                        data-bs-toggle="tooltip" title="Edit Data">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+
+                                                    <form
+                                                        action="{{ route('admin_kabupaten.cagar-budaya.destroy', $item->id) }}"
+                                                        method="POST" class="d-inline form-delete">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="button"
+                                                            class="btn btn-sm btn-white text-danger border btn-delete"
+                                                            data-bs-toggle="tooltip" title="Hapus Data">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    {{-- TAMPILAN JIKA DATA SUDAH DIKUNCI --}}
+                                                    <button class="btn btn-sm btn-light border text-muted" disabled
+                                                        data-bs-toggle="tooltip" title="Data sudah diverifikasi & dikunci">
+                                                        <i class="fas fa-lock"></i>
                                                     </button>
-                                                </form>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('kategori_id')->constrained('kategori_budaya');
 
-            // Relasi Wilayah (Kode wilayah Maluku seperti '81.71')
+            // Relasi Wilayah
             $table->string('kode_wilayah');
             $table->foreign('kode_wilayah')->references('kode')->on('wilayah');
 
@@ -34,34 +34,34 @@ return new class extends Migration
 
             // ==========================================
             // 3. DOKUMEN USULAN (DARI KABUPATEN)
-            // Kolom ini wajib diisi saat pendaftaran ke Provinsi
             // ==========================================
-            $table->string('file_surat_pengantar')->nullable(); // Surat resmi Dinas/Bupati
-            $table->string('file_rekomendasi_tacb')->nullable(); // Naskah hasil kajian TACB Kab
+            $table->string('file_surat_pengantar')->nullable();
+            $table->string('file_rekomendasi_tacb')->nullable();
 
 
             // ==========================================
             // 4. STATUS & PENETAPAN (PROVINSI/NASIONAL)
             // ==========================================
             $table->enum('status_verifikasi', [
-                'Pendaftaran', // Baru diinput (ODCB)
+                'Pendaftaran',  // Baru diinput (ODCB)
                 'Diverifikasi', // Dokumen diperiksa admin prov
+                'Revisi',       // Butuh perbaikan dari Kabupaten (Sinkron dengan Evaluasi)
                 'Ditetapkan',   // Sudah terbit SK Gubernur
                 'Ditolak'       // Tidak memenuhi syarat
             ])->default('Pendaftaran');
 
             $table->enum('peringkat', ['Nasional', 'Provinsi', 'Kabupaten/Kota'])->nullable();
 
-            // Detail SK Penetapan Tingkat Provinsi (Diisi saat status 'Ditetapkan')
+            // Detail SK Penetapan
             $table->string('nomor_sk')->nullable();
-            $table->string('file_sk_penetapan')->nullable(); // Path PDF SK Gubernur
+            $table->string('file_sk_penetapan')->nullable();
             $table->year('tahun_penetapan')->nullable();
 
             // ==========================================
             // 5. DATA SPASIAL (GIS)
             // ==========================================
             $table->enum('tipe_geometri', ['Titik', 'Poligon']);
-            $table->json('koordinat'); // Menyimpan {lat,lng} atau [[lat,lng], ...]
+            $table->json('koordinat');
 
             $table->timestamps();
         });

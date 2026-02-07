@@ -94,7 +94,7 @@ class PublicDataController extends Controller
             'nama' => $cagar->nama,
             'kategori' => $cagar->kategori->nama_kategori ?? '-',
             'wilayah' => $cagar->wilayah->nama ?? '-', // Mengambil nama dari relasi wilayah()
-            'alamat' => $cagar->alamat ?? 'Alamat tidak tersedia',
+            'alamat' => $cagar->alamat_lengkap ?? 'Alamat tidak tersedia',
             'deskripsi' => $cagar->deskripsi ?? 'Tidak ada deskripsi singkat.',
             'foto' => $cagar->foto->map(function ($f) {
                 return asset('storage/' . $f->path);

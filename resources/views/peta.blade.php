@@ -156,7 +156,7 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('publik.peta') ? 'active fw-bold' : '' }}"
                             href="{{ route('publik.peta') }}">
-                            <i class="fas fa-map-marked-alt me-1"></i> Peta
+                            <i class="fas fa-map-marked-alt me-1"></i> Peta Sebaran
                         </a>
                     </li>
                 </ul>

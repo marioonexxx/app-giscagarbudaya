@@ -36,4 +36,8 @@ class CagarBudaya extends Model
     {
         return $this->belongsTo(Wilayah::class, 'kode_wilayah', 'kode');
     }
+    public function evaluasi()
+    {
+        return $this->hasMany(EvaluasiCagarBudaya::class, 'cagar_budaya_id')->latest();
+    }
 }
