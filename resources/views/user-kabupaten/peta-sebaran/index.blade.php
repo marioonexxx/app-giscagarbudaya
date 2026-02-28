@@ -4,6 +4,8 @@
 
 @push('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css' rel='stylesheet' />
+
     <style>
         #mapSebaran {
             height: 80vh;
@@ -14,32 +16,14 @@
             box-shadow: 0 0.15rem 1.75rem 0 rgba(33, 40, 50, 0.15);
         }
 
-        /* Marker Dot Merah */
+        /* Marker Dot Dinamis */
         .pulse-dot {
-            width: 12px;
-            height: 12px;
-            background: #e74a3b;
+            width: 14px;
+            height: 14px;
             border: 2px solid #fff;
             border-radius: 50%;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-            animation: pulse-red 2s infinite;
-        }
-
-        @keyframes pulse-red {
-            0% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(231, 74, 59, 0.7);
-            }
-
-            70% {
-                transform: scale(1.1);
-                box-shadow: 0 0 0 8px rgba(231, 74, 59, 0);
-            }
-
-            100% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(231, 74, 59, 0);
-            }
+            display: block;
         }
 
         /* Tooltip Style */
@@ -52,6 +36,11 @@
             border-radius: 4px;
             font-weight: bold;
         }
+
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            padding: 5px;
+        }
     </style>
 @endpush
 
@@ -63,7 +52,7 @@
                     <div class="row align-items-center justify-content-between pt-3">
                         <div class="col-auto mb-3">
                             <h1 class="page-header-title text-primary">
-                                <i class="fas fa-map-marked-alt me-2"></i>Peta Sebaran Objek
+                                <i class="fas fa-map-marked-alt me-2"></i>Peta Sebaran Objek Wilayah
                             </h1>
                         </div>
                     </div>
@@ -83,41 +72,58 @@
 
 @push('scripts')
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. Inisialisasi Map
+            // 1. Inisialisasi Map (Center Maluku)
             const map = L.map('mapSebaran', {
-                center: [-3.6547, 128.1906],
-                zoom: 11
+                center: [-3.2371, 130.1445],
+                zoom: 7,
+                fullscreenControl: true, // Poin 3: Mengaktifkan Fullscreen
+                fullscreenControlOptions: {
+                    position: 'topleft'
+                }
             });
 
-            // 2. Base Layer Ultra-Light (Agar tidak putih polos tanpa konteks)
+            // 2. Base Layer (Light)
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; CartoDB'
             }).addTo(map);
 
             const layersGroup = [];
 
-            // Icon Marker
-            const customIcon = L.divIcon({
-                className: 'custom-div-icon',
-                html: '<div class="pulse-dot"></div>',
-                iconSize: [12, 12],
-                iconAnchor: [6, 6]
-            });
+            // Fungsi Warna Status
+            function getStatusColor(status) {
+                switch (status) {
+                    case 'Ditetapkan':
+                        return '#10b981'; // Hijau
+                    case 'Diverifikasi':
+                        return '#3b82f6'; // Biru
+                    case 'Revisi':
+                        return '#f59e0b'; // Oranye
+                    case 'Ditolak':
+                        return '#ef4444'; // Merah
+                    default:
+                        return '#6b7280'; // Pendaftaran (Abu-abu)
+                }
+            }
 
-            // 3. Loop Data
-            @forelse ($sebaran as $item)
+            // 3. Render Data dari Controller
+            @foreach ($sebaran as $item)
                 (function() {
                     const type = "{{ $item->tipe_geometri }}";
                     const coords = {!! json_encode($item->koordinat) !!};
                     const nama = "{{ $item->nama }}";
+                    const status = "{{ $item->status_verifikasi }}";
+                    const color = getStatusColor(status);
 
-                    // Cek data di console (F12)
-                    console.log("Data Item:", {
-                        nama,
-                        type,
-                        coords
+                    // Marker Icon Dinamis sesuai warna status
+                    const customIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div class="pulse-dot" style="background: ${color};"></div>`,
+                        iconSize: [14, 14],
+                        iconAnchor: [7, 7]
                     });
 
                     let layer;
@@ -128,19 +134,20 @@
                         }).addTo(map);
                     } else if (type === 'Poligon' && Array.isArray(coords) && coords.length > 0) {
                         layer = L.polygon(coords, {
-                            color: '#4e73df',
+                            color: color,
                             weight: 2,
-                            fillColor: '#4e73df',
+                            fillColor: color,
                             fillOpacity: 0.2
                         }).addTo(map);
 
-                        // Taruh marker di tengah poligon untuk label
+                        // Tambah marker di tengah poligon biar bisa diklik/label
                         L.marker(layer.getBounds().getCenter(), {
                             icon: customIcon
                         }).addTo(map);
                     }
 
                     if (layer) {
+                        // Tooltip (Label Nama)
                         layer.bindTooltip(nama, {
                             permanent: true,
                             direction: 'top',
@@ -148,15 +155,22 @@
                             offset: [0, -5]
                         });
 
-                        layer.bindPopup(`<strong>${nama}</strong><br>Tipe: ${type}`);
+                        // Popup (Informasi Detail)
+                        layer.bindPopup(`
+                            <div style="min-width: 150px">
+                                <strong style="font-size:14px">${nama}</strong><br>
+                                <span class="badge" style="background-color: ${color}; color: white; font-size: 10px; padding: 2px 5px; margin-top:5px">${status}</span>
+                                <hr style="margin: 8px 0">
+                                <a href="{{ route('admin_kabupaten.cagar-budaya.edit', $item->id) }}" class="btn btn-primary btn-sm text-white w-100" style="font-size: 11px">Detail/Edit</a>
+                            </div>
+                        `);
+
                         layersGroup.push(layer);
                     }
                 })();
-            @empty
-                console.warn("Data 'sebaran' kosong dari Controller.");
-            @endforelse
+            @endforeach
 
-            // 4. Fokuskan Peta ke semua data
+            // 4. Auto-Focus (FitBounds) jika ada data
             if (layersGroup.length > 0) {
                 const group = new L.featureGroup(layersGroup);
                 map.fitBounds(group.getBounds(), {
@@ -164,7 +178,7 @@
                 });
             }
 
-            // Fix render
+            // Fix render issue dalam container
             setTimeout(() => {
                 map.invalidateSize();
             }, 500);

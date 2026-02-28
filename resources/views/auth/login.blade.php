@@ -158,12 +158,17 @@
                                             </div>
                                         </div>
 
-                                        <div class="d-grid">
-                                            <button type="submit"
-                                                class="btn btn-primary btn-block py-3 fw-bold shadow-sm"
+                                        <div class="d-grid gap-2">
+                                            <button type="submit" class="btn btn-primary py-3 fw-bold shadow-sm"
                                                 style="background-color: #1e3a8a; border: none;">
                                                 Masuk ke Dashboard
                                             </button>
+
+                                            <a href="{{ url('/') }}"
+                                                class="btn btn-outline-light py-3 fw-bold text-muted border-0"
+                                                style="font-size: 0.85rem;">
+                                                <i class="fas fa-home me-2"></i>Kembali ke Beranda
+                                            </a>
                                         </div>
                                     </form>
                                 </div>

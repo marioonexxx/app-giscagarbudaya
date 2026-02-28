@@ -14,7 +14,6 @@
         crossorigin="anonymous"></script>
 
     <style>
-        /* Menggunakan background yang sama dengan welcome */
         .bg-landing {
             background: linear-gradient(135deg, #1e3a8a 0%, #1e1b4b 100%);
             min-height: 100vh;
@@ -26,9 +25,9 @@
             transition: all 0.3s;
         }
 
-        /* Penyesuaian konten agar tidak tertutup navbar */
+        /* Penyesuaian: Padding dikurangi karena navbar tidak lagi fixed-top */
         .content-section {
-            padding-top: 8rem;
+            padding-top: 3rem;
             padding-bottom: 5rem;
         }
 
@@ -58,7 +57,6 @@
             padding: 1rem 0.5rem;
         }
 
-        /* Style untuk Tombol Detail agar terlihat */
         .btn-detail {
             background: rgba(255, 255, 255, 0.2);
             color: white;
@@ -105,7 +103,6 @@
             border-radius: 1rem;
         }
 
-        /* Style untuk Select Filter agar matching */
         .form-select-custom {
             background-color: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -122,12 +119,11 @@
 </head>
 
 <body class="bg-landing">
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-landing fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-landing">
         <div class="container px-5">
             <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
                 <img src="{{ asset('sbadmin/assets/img/pemprov-maluku.png') }}" alt="Logo" width="45"
                     class="me-3">
-
                 <div class="d-flex flex-column lh-1">
                     <span class="fs-5 fw-bold text-uppercase">SI-CAGAR BUDAYA</span>
                     <span class="small fw-normal text-white-50" style="font-size: 0.75rem;">
@@ -135,10 +131,13 @@
                     </span>
                 </div>
             </a>
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarSupportedContent">
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0 me-4">
                     <li class="nav-item">
@@ -146,14 +145,12 @@
                             <i class="fas fa-home me-1"></i> Home
                         </a>
                     </li>
-
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('publik.statistik') ? 'active fw-bold' : '' }}"
                             href="{{ route('publik.statistik') }}">
                             <i class="fas fa-chart-bar me-1"></i> Statistik
                         </a>
                     </li>
-
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('publik.peta') ? 'active fw-bold' : '' }}"
                             href="{{ route('publik.peta') }}">
